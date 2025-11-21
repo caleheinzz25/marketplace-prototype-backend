@@ -39,16 +39,6 @@ NiagaNow is a comprehensive e-commerce system designed to streamline the buying 
 
 ---
 
-## Use Case Diagram
-
-Below is a high-level use case diagram illustrating the interactions between actors and the system:
-
-![Use Case Diagram](https://via.placeholder.com/800x600?text=Insert+Your+Diagram+Here)
-
-*(Replace the placeholder with an actual image of your diagram when publishing the repository.)*
-
----
-
 ## Installation
 
 ### Prerequisites
