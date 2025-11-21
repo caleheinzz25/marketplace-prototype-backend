@@ -1,0 +1,84 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor White
+  BorderColor Black
+  RoundCorner 10
+}
+
+actor "Pelanggan\n(User)" as Customer
+actor "Penjual\n(Pemilik Toko)" as Seller
+actor "Manajer" as Manager
+actor "Admin / SuperAdmin" as Admin
+actor "Gerbang Pembayaran\n(Eksternal)" as PaymentGateway
+actor "Penyedia Pengiriman\n(Eksternal)" as ShippingProvider
+
+rectangle "Sistem NiagaNow" {
+  usecase UC_Auth as "Registrasi / Login / Sesi\n(Generate / Refresh JWT)"
+  usecase UC_Browse as "Jelajah & Cari Produk"
+  usecase UC_ViewProduct as "Lihat Detail Produk"
+  usecase UC_ManageAddress as "Kelola Alamat"
+  usecase UC_Cart as "Kelola Keranjang\n(Tambah / Ubah / Hapus / Lihat)"
+  usecase UC_Checkout as "Checkout / Buat Transaksi\n(Kelompokkan keranjang per toko -> buat Pesanan)"
+  usecase UC_ValidateStock as "Validasi Stok & Harga"
+  usecase UC_CalcTotals as "Hitung Subtotal, Ongkir, Pajak"
+  usecase UC_Pay as "Lakukan Pembayaran / Pilih Channel"
+  usecase UC_PaymentCallback as "Tangani Callback Pembayaran"
+  usecase UC_ViewOrders as "Lihat Pesanan & Status Transaksi"
+  usecase UC_Review as "Kirim Ulasan Produk"
+
+  usecase UC_CreateStore as "Buat / Konfigurasi Toko"
+  usecase UC_ManageProduct as "Kelola Produk (CRUD, Gambar, Meta)"
+  usecase UC_ManageInventory as "Kelola Stok & Harga"
+  usecase UC_StoreOrders as "Kelola Pesanan Toko\n(proses, kirim, update status)"
+  usecase UC_StoreFinances as "Kelola Keuangan Toko\n(lihat saldo, pencairan)"
+
+  usecase UC_AdminUserMgmt as "Admin: Kelola Pengguna, Peran, Hak Akses"
+  usecase UC_AdminTxnMgmt as "Admin: Lihat / Rekonsiliasi Transaksi"
+  usecase UC_RevokeSessions as "Cabut / Periksa Sesi JWT"
+  usecase UC_SystemTasks as "Tugas Sistem\n(kedaluwarsa tx belum bayar, rekonsiliasi, notifikasi)"
+}
+
+' Asosiasi aktor
+Customer --> UC_Auth
+Customer --> UC_Browse
+Customer --> UC_ViewProduct
+Customer --> UC_ManageAddress
+Customer --> UC_Cart
+Customer --> UC_Checkout
+Customer --> UC_Pay
+Customer --> UC_ViewOrders
+Customer --> UC_Review
+
+Seller --> UC_CreateStore
+Seller --> UC_ManageProduct
+Seller --> UC_ManageInventory
+Seller --> UC_StoreOrders
+Seller --> UC_StoreFinances
+
+Manager --> UC_ManageProduct
+Manager --> UC_StoreOrders
+
+Admin --> UC_AdminUserMgmt
+Admin --> UC_AdminTxnMgmt
+Admin --> UC_RevokeSessions
+Admin --> UC_SystemTasks
+
+PaymentGateway --> UC_Pay
+PaymentGateway --> UC_PaymentCallback
+
+ShippingProvider --> UC_StoreOrders
+ShippingProvider --> UC_ViewOrders
+
+' Relasi use case
+UC_Checkout .> UC_ValidateStock : <<include>>
+UC_Checkout .> UC_CalcTotals : <<include>>
+UC_Checkout .> UC_Cart : <<include>>  -- "buat pesanan dari keranjang"
+UC_Pay .> UC_Checkout : <<include>>  -- "pembayaran untuk transaksi yang dibuat"
+UC_PaymentCallback .> UC_AdminTxnMgmt : <<include>> -- "notifikasi/rekonsiliasi admin"
+UC_SystemTasks .> UC_AdminTxnMgmt : <<include>> -- "rekonsiliasi/kedaluwarsa"
+UC_RevokeSessions .> UC_Auth : <<include>>
+UC_StoreOrders .> UC_ManageInventory : <<include>> -- "reservasi/penyesuaian stok"
+
+@enduml

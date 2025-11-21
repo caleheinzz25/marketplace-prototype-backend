@@ -1,0 +1,303 @@
+@startuml
+
+' ================== PACKAGE: NiagaNow.model ==================
+package "NiagaNow.model" {
+
+    class User {
+        +Long id
+        +String username
+        +String email
+        +String fullName
+        +String phoneNumber
+        +String password
+        +Boolean enabled
+        +String userImage
+        +Role role
+        +List<Address> addresses
+        +List<JwtToken> tokens
+        +List<Cart> carts
+        +Store store
+        +LocalDateTime createdAt
+        +LocalDateTime updatedAt
+
+        +void addCart(Cart cart)
+        +void removeCart(Cart cart)
+    }
+
+    class Address {
+        +Long id
+        +String addressType
+        +String firstName
+        +String lastName
+        +String streetAddress
+        +String apartment
+        +String city
+        +String stateProvince
+        +String postalCode
+        +String country
+        +String phoneNumber
+        +boolean defaultShipping
+        +User user
+        +Store store
+    }
+
+    class JwtToken {
+        +Long id
+        +String refreshToken
+        +String userAgent
+        +LocalDateTime createdAt
+        +LocalDateTime updatedAt
+        +User user
+    }
+
+    enum Role {
+        USER
+        SELLER
+        MANAGER
+        ADMIN
+        SUPER_ADMIN
+    }
+
+    enum Permission {
+        USER_READ
+        USER_CREATE
+        USER_UPDATE
+        USER_DELETE
+        SELLER_READ
+        SELLER_CREATE
+        SELLER_UPDATE
+        SELLER_DELETE
+        MANAGER_READ
+        MANAGER_CREATE
+        MANAGER_UPDATE
+        MANAGER_DELETE
+        ADMIN_READ
+        ADMIN_CREATE
+        ADMIN_UPDATE
+        ADMIN_DELETE
+        SUPER_ADMIN_ALL
+    }
+
+    ' --- Relationships ---
+    User "1" o-- "0..*" Address : addresses
+    User "1" o-- "0..*" Cart : carts
+    User "1" o-- "0..*" JwtToken : tokens
+    User "1" --> "0..1" Store : owns >
+    User --> Role : has >
+    Role --> Permission : grants >
+
+    Address "*" --> "1" User
+    Address "*" --> "0..1" Store
+
+    JwtToken "*" --> "1" User
+}
+
+' ================== PACKAGE: NiagaNow.model.store ==================
+package "NiagaNow.model.store" {
+    class Store {
+        +Long id
+        +String storeName
+        +String logoUrl
+        +String contactPhone
+        +String storeType
+        +String description
+        +BigDecimal saldo
+        +String storeEmail
+        +String storeNo
+        +boolean enabled
+        +Instant createdAt
+        +Instant updatedAt
+    }
+
+    Store "1" --> "0..1" Address : has >
+    Store "1" --> "1" User : owned by >
+    Store "1" --> "0..*" Product : sells >
+}
+
+' ================== PACKAGE: NiagaNow.model.products ==================
+package "NiagaNow.model.products" {
+    class Product {
+        +Long id
+        +String title
+        +String description
+        +String category
+        +BigDecimal price
+        +BigDecimal rating
+        +BigDecimal weight
+        +Integer stock
+        +Set<String> tags
+        +String brand
+        +String sku
+        +String warrantyInformation
+        +String shippingInformation
+        +AvailabilityStatus availabilityStatus
+        +String returnPolicy
+        +Integer minimumOrderQuantity
+        +String thumbnail
+        +Boolean enabled
+        +Instant createdAt
+        +Instant updatedAt
+    }
+
+    class ProductImage {
+        +Long id
+        +String url
+    }
+
+    class Review {
+        +Long id
+        +String comment
+        +Integer rating
+    }
+
+    class Dimension {
+        +Long id
+        +Double length
+        +Double width
+        +Double height
+    }
+
+    class ProductMeta {
+        +Long id
+        +String metaTitle
+        +String metaDescription
+    }
+
+    enum AvailabilityStatus {
+        IN_STOCK
+        OUT_OF_STOCK
+        PREORDER
+    }
+
+    Product "1" --> "0..1" Dimension
+    Product "1" --> "0..1" ProductMeta
+    Product "1" --> "0..*" ProductImage : has >
+    Product "1" --> "0..*" Review : receives >
+    Product "1" --> "1" Store : belongs to >
+}
+
+' ================== PACKAGE: NiagaNow.model.orders ==================
+package "NiagaNow.model.orders" {
+    class Order {
+        +Long id
+        +String referenceId
+        +OrderStatus status
+        +ChannelCode channelCode
+        +BigDecimal subtotal
+        +BigDecimal shippingCost
+        +BigDecimal totalAmount
+        +ShippingType shippingType
+        +Instant paymentReceivedAt
+        +Instant createdAt
+        +Instant updatedAt
+        +void addItem(OrderItem)
+        +void removeItem(OrderItem)
+        +void calculateAndSetTotal()
+    }
+
+    class Transaction {
+        +Long id
+        +String referenceId
+        +User user
+        +List<Order> orders
+        +PaymentStatus status
+        +BigDecimal totalAmount
+        +BigDecimal subTotal
+        +BigDecimal shippingCost
+        +BigDecimal tax
+        +List<ActionDto> actions
+        +String actionValue
+        +ChannelCode channelCode
+        +ShippingInfoSnapshot shippingInfo
+        +Instant expiresAt
+        +Instant paymentCreatedAt
+        +Instant paymentReceivedAt
+        +Instant paymentUpdatedAt
+        +Instant createdAt
+        +Instant updatedAt
+
+        +void addOrder(Order)
+        +void calculateSubTotal()
+        +void calculateTotalAmount()
+        +void calculateShippingCost()
+    }
+
+    class OrderItem {
+        +Long id
+        +int quantity
+        +String productName
+        +Long productId
+        +String brand
+        +String productSku
+        +String productImage
+        +BigDecimal price
+        +BigDecimal getSubtotal()
+        +double getUnitPrice() <<deprecated>>
+    }
+
+    enum OrderStatus {
+        PENDING_PAYMENT
+        PAID
+        PROCESSING
+        SHIPPED
+        DELIVERED
+        CANCELED
+    }
+
+    enum ChannelCode {
+        BANK_TRANSFER
+        EWALLET
+        QR_CODE
+        RETAIL_OUTLET
+    }
+
+    enum ShippingType {
+        REGULER
+        SAME_DAY
+        INSTANT
+        PICKUP
+    }
+
+    ' -- RELATIONSHIPS --
+    Transaction "1" o-- "0..*" Order : contains >
+    Order "*" --> "1" Transaction : part of >
+
+    Transaction --> User : createdBy >
+    Transaction --> ChannelCode
+    Transaction --> PaymentStatus
+    Transaction --> ActionDto : actions >
+    Transaction --> ShippingInfoSnapshot : shipping >
+    Order "1" --> "0..*" OrderItem : contains >
+    OrderItem "*" --> "1" Order : belongs to >
+    Order --> User : placedBy >
+    Order --> Store : forStore >
+}
+
+' ================== PACKAGE: NiagaNow.model.carts ==================
+package "NiagaNow.model.carts" {
+    class Cart {
+        +Long id
+        +boolean checkedOut
+        +LocalDateTime createdAt
+        +LocalDateTime updatedAt
+        +void addItem(CartItem)
+        +void removeItem(CartItem)
+        +BigDecimal getTotal()
+        +void clearItems()
+    }
+
+    class CartItem {
+        +Long id
+        +int quantity
+        +BigDecimal priceSnapshot
+        +BigDecimal getSubtotal()
+    }
+
+    Cart "1" --> "0..*" CartItem : contains >
+    CartItem "*" --> "1" Cart : belongs to >
+    Cart --> User : ownedBy >
+    Cart --> Store : forStore >
+    CartItem --> Product : refers to >
+}
+
+@enduml

@@ -1,0 +1,50 @@
+@startuml
+title Activity Diagram Login (User, Seller, Admin)
+
+start
+
+:User membuka aplikasi NiagaNow;
+:Masukkan username & password;
+
+if (Akun ditemukan?) then (Ya)
+    if (Password valid?) then (Ya)
+        :Autentikasi berhasil;
+        :Generate JWT Token;
+        :Set session aktif;
+
+        if (Role == USER) then (Ya)
+            :Tampilkan Dashboard User;
+        else (Tidak)
+            if (Role == SELLER) then (Ya)
+                :Verifikasi status Seller aktif?;
+                if (Aktif) then (Ya)
+                    :Tampilkan Dashboard Seller;
+                else (Tidak)
+                    :Seller belum terdaftar/aktif;
+                    :Alihkan ke form pendaftaran Seller;
+                    :Isi data toko -> Simpan Store -> Aktifasi;
+                    :Kembali ke Dashboard Seller;
+                endif
+            else
+                if (Role == ADMIN or Role == MANAGER or Role == SUPER_ADMIN) then (Ya)
+                    :Tampilkan Dashboard Admin;
+                else (Tidak)
+                    :Role tidak valid;
+                    stop
+                endif
+            endif
+        endif
+
+    else (Tidak)
+        :Password salah;
+        :Tampilkan pesan error;
+        stop
+    endif
+else (Tidak)
+    :Akun tidak ditemukan;
+    :Tampilkan pesan error;
+    stop
+endif
+
+stop
+@enduml

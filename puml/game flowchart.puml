@@ -1,0 +1,74 @@
+@startuml
+title Whispering Woods of the Ancients - Game Flowchart\n(Hack & Slash Project)
+
+start
+
+:Main Menu;
+note right: New Game / Load Game / Options
+
+if (New Game?) then (yes)
+  :Show Opening Cinematic;
+  :Initialize Player (Kaelen);
+else (no)
+  :Load Saved Game;
+endif
+
+:Enter Game World (Ring 1 - Edgewood);
+
+repeat
+  :Explore Zone;
+  
+  if (Encounter Enemy?) then (yes)
+    :Enter Combat;
+    
+    repeat
+      :Player Action:\nAttack/Dodge/Rune;
+      :Enemy AI Response;
+      if (Player Health <= 0?) then (yes)
+        :Game Over;
+        stop
+      elseif (Enemy Defeated?) then (yes)
+        :Grant Rewards\n(EXP, Items, Runes);
+        break
+      endif
+    repeat while (Combat Continues?)
+  endif
+
+  if (Discover New Rune?) then (yes)
+    :Unlock New Ability;
+    :Update Skill Tree;
+  endif
+
+  if (Reach Zone Boss?) then (yes)
+    :Boss Battle;
+    if (Defeat Boss?) then (yes)
+      :Unlock Next Zone;
+      :Progress Story;
+    else (no)
+      :Retry from Checkpoint;
+    endif
+  endif
+
+  if (Open Menu?) then (yes)
+    :Pause Game;
+    if (Inventory Management?) then (yes)
+      :Equip/Upgrade Gear;
+    endif
+    if (Skill Tree?) then (yes)
+      :Spend Skill Points;
+    endif
+    if (Save Game?) then (yes)
+      :Save Progress;
+    endif
+    :Resume Game;
+  endif
+
+repeat while (Final Boss Defeated?) is (no)
+
+:Show Ending Cinematic;
+:Credits Roll;
+:Return to Main Menu;
+
+stop
+
+@enduml
